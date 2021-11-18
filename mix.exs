@@ -30,6 +30,7 @@ defmodule JobsWorldwide.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:nimble_csv, "~> 1.1"},
+      {:table_rex, "~> 3.1.1"},
       {:topo, "~> 0.4.0"}
     ]
   end

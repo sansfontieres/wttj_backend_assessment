@@ -4,14 +4,15 @@ defmodule JobsWorldwide do
   """
 
   alias JobsWorldwide.CSVParser
+  alias JobsWorldwide.Table
 
   @doc """
   The entry function of the CLI.  
   It orchestrates every functions to output the job offers table.
   """
   def main(_) do
-    job_offers = CSVParser.map_jobs("data/technical-test-jobs.csv")
+    job_offers = CSVParser.map_jobs()
 
-    IO.inspect(Enum.to_list(job_offers), limit: :infinity)
+    Table.create_table(job_offers)
   end
 end

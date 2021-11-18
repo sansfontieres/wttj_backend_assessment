@@ -1,52 +1,42 @@
-defmodule JobsWorldwide.CsvParser do
+defmodule JobsWorldwide.CSVParser do
   @moduledoc "CSV parser for `jobs_worldwide`."
 
-  @filepath "data/technical-test-"
-  @professions_csv @filepath <> "professions.csv"
-  @jobs_csv @filepath <> "jobs.csv"
+  alias NimbleCSV.RFC4180, as: CSV
 
   defp parse_csv(file) do
     file
     |> File.stream!()
-    |> Stream.drop(1)
-    |> Stream.map(fn line ->
-      String.trim(line) |> String.split(",")
-    end) 
+    |> CSV.parse_stream()
   end
 
   @doc """
-    This function parses the profession CSV and creates an Elixir map
-    containing an integer for the id, and an atom for the profession.
+  This function parses the profession CSV and creates an Elixir map
+  linking for each id an atom with the profession category.
 
-    Example:
-    iex> JobsWorldwide.CsvParser.map_professions
-    %{
-      33 => :Retail,
-      12 => :Tech,
-      23 => :Admin,
-      15 => :Tech,
-      # snip
-    }
+  ## Example
+      iex> JobsWorldwide.CSVParser.map_professions
+      %{
+       "17" => :Tech,
+       "24" => :Admin,
+       "38" => :Conseil,
+       ...
+      }
   """
   def map_professions do
-    professions = parse_csv(@professions_csv)
+    list =
+      parse_csv("data/technical-test-professions.csv")
+      |> Stream.map(fn [id, _, category] ->
+        category = String.to_atom(category)
 
-    professions
-    |> Enum.into(%{}, fn [id, _, profession] ->
-      {String.to_integer(id), String.to_atom(profession)}
-    end)
+        {category, id}
+      end)
+
+    for {k, v} <- list, into: %{}, do: {v, k}
   end
 
-  def map_jobs do
-    jobs = parse_csv(@jobs_csv)
-
-    jobs
-    |> Enum.into(%{}, fn [id, _, _, latitude, longitude] ->
-      {String.to_integer(id), [latitude, longitude]}
-    end)
-  end
-
-  def test do
-    IO.inspect(map_professions())
+  defp get_category(id) do
+    map_professions()
+    |> Enum.find(fn {k, _} -> k == id end)
+    |> elem(1)
   end
 end

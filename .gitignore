@@ -24,3 +24,6 @@ wttj_backend_assessment-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# escript binary
+/jobs_worldwide

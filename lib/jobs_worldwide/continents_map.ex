@@ -10,8 +10,6 @@ defmodule JobsWorldwide.ContinentsMap do
     Credit to: https://stackoverflow.com/a/25075832
   """
 
-  @type coordinates :: {number, number}
-
   @continents [
     %{
       continent: :"Amérique du Nord",
@@ -173,6 +171,7 @@ defmodule JobsWorldwide.ContinentsMap do
       iex> JobsWorldwide.ContinentsMap.get_continent(100, 100)
       :"N/A"
   """
+  @spec get_continent(number, number) :: atom
   def get_continent(latitude, longitude) do
     location = %{type: "Point", coordinates: {latitude, longitude}}
 

@@ -3,6 +3,7 @@ defmodule JobsWorldwide.CSVParser do
 
   alias NimbleCSV.RFC4180, as: CSV
 
+  @spec parse_csv(String.t()) :: function
   defp parse_csv(file) do
     file
     |> File.stream!()
@@ -22,6 +23,7 @@ defmodule JobsWorldwide.CSVParser do
        ...
       }
   """
+  @spec map_professions :: map
   def map_professions do
     list =
       parse_csv("data/technical-test-professions.csv")
@@ -34,29 +36,31 @@ defmodule JobsWorldwide.CSVParser do
     for {k, v} <- list, into: %{}, do: {v, k}
   end
 
+  @spec get_category(String.t()) :: atom
   defp get_category(id) do
     map_professions()
     |> Enum.find(fn {k, _} -> k == id end)
     |> elem(1)
   end
 
+  @spec map_jobs :: list
   @doc """
-  Parses the jobs CSV and creates a list of maps containing the continent and
-  the job offer category in atoms.
+  Parses the jobs CSV and creates a list containing the continent and the job
+  offer’s category in atoms.
 
   ## Example
-      iex> JobsWorldwide.CsvParser.map_jobs |> Enum.to_list
+      iex> JobsWorldwide.CsvParser.map_jobs
       [
-        %{category: :Créa, location: :Europe},
-        %{category: :Tech, location: :"Amérique du Nord"},
-        %{category: :Business, location: :Europe},
+        Créa:  :Europe,
+        Tech:  :"Amérique du Nord",
+        Business: :Europe,
         ...
       ]
 
   Safety measures were taken if some fields were missing.
   """
-  def map_jobs(file) do
-    parse_csv(file)
+  def map_jobs do
+    parse_csv("data/technical-test-jobs.csv")
     |> Stream.map(fn
       [id, _, _, latitude, longitude] ->
         category =
@@ -76,7 +80,8 @@ defmodule JobsWorldwide.CSVParser do
             _, _ -> :"N/A"
           end
 
-        %{location: continent, category: category}
+        {continent, category}
     end)
+    |> Enum.to_list()
   end
 end

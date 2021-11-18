@@ -39,4 +39,44 @@ defmodule JobsWorldwide.CSVParser do
     |> Enum.find(fn {k, _} -> k == id end)
     |> elem(1)
   end
+
+  @doc """
+  Parses the jobs CSV and creates a list of maps containing the continent and
+  the job offer category in atoms.
+
+  ## Example
+      iex> JobsWorldwide.CsvParser.map_jobs |> Enum.to_list
+      [
+        %{category: :Créa, location: :Europe},
+        %{category: :Tech, location: :"Amérique du Nord"},
+        %{category: :Business, location: :Europe},
+        ...
+      ]
+
+  Safety measures were taken if some fields were missing.
+  """
+  def map_jobs(file) do
+    parse_csv(file)
+    |> Stream.map(fn
+      [id, _, _, latitude, longitude] ->
+        category =
+          try do
+            get_category(id)
+          catch
+            _, _ -> :"N/A"
+          end
+
+        continent =
+          try do
+            JobsWorldwide.ContinentsMap.get_continent(
+              String.to_float(latitude),
+              String.to_float(longitude)
+            )
+          catch
+            _, _ -> :"N/A"
+          end
+
+        %{location: continent, category: category}
+    end)
+  end
 end

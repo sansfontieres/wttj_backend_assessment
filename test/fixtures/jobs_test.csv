@@ -1,0 +1,5 @@
+profession_id,contract_type,name,office_lattitude,office_longitude
+28,FULL_TIME,"Développeur backend Erlang/Rust Spotify, Stockholm",59.84717494454148,18.303738553651066
+14,FULL_TIME,[Figma] Développeur fullstack C++ React,37.80774459740865,-122.40716899982344
+1,FULL_TIME,[Nokia Bell Labs] Chercheur télécommunication,53.689222398422764,-6.244402551533516
+,FULL_TIME,Incomplete offer,,

@@ -45,7 +45,7 @@ defmodule JobsWorldwide.Table do
       iex> Jobs.Worldwide.Table.create_table(jobs_offers)
 
   """
-  @spec create_table(map) :: String.t()
+  @spec create_table(list) :: :atom
   def create_table(job_offers) do
     frequencies = Enum.frequencies(job_offers)
     continents_totals = job_offers |> Enum.frequencies_by(&elem(&1, 0))

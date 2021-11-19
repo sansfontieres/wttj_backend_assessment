@@ -23,10 +23,10 @@ defmodule JobsWorldwide.CSVParser do
        ...
       }
   """
-  @spec map_professions :: map
-  def map_professions do
+  @spec map_professions(function) :: map
+  def map_professions(professions_csv) do
     list =
-      parse_csv("data/technical-test-professions.csv")
+      professions_csv
       |> Stream.map(fn [id, _, category] ->
         category = String.to_atom(category)
 
@@ -36,14 +36,13 @@ defmodule JobsWorldwide.CSVParser do
     for {k, v} <- list, into: %{}, do: {v, k}
   end
 
-  @spec get_category(String.t()) :: atom
-  defp get_category(id) do
-    map_professions()
+  @spec get_category(String.t(), function) :: atom
+  defp get_category(id, professions_csv) do
+    map_professions(professions_csv)
     |> Enum.find(fn {k, _} -> k == id end)
     |> elem(1)
   end
 
-  @spec map_jobs :: list
   @doc """
   Parses the jobs CSV and creates a list containing the continent and the job
   offer’s category in atoms.
@@ -59,13 +58,14 @@ defmodule JobsWorldwide.CSVParser do
 
   Safety measures were taken if some fields were missing.
   """
-  def map_jobs do
-    parse_csv("data/technical-test-jobs.csv")
+  @spec map_jobs(function, function) :: list
+  def map_jobs(jobs_csv, professions_csv) do
+    jobs_csv
     |> Stream.map(fn
       [id, _, _, latitude, longitude] ->
         category =
           try do
-            get_category(id)
+            get_category(id, professions_csv)
           catch
             _, _ -> :"N/A"
           end
@@ -83,5 +83,13 @@ defmodule JobsWorldwide.CSVParser do
         {continent, category}
     end)
     |> Enum.to_list()
+  end
+
+  @doc "This is the entry point to this module."
+  @spec get_offers_list(String.t(), String.t()) :: list
+  def get_offers_list(jobs_csv, professions_csv) do
+    jobs_csv = parse_csv(jobs_csv)
+    professions_csv = parse_csv(professions_csv)
+    map_jobs(jobs_csv, professions_csv)
   end
 end

@@ -1,6 +1,9 @@
 defmodule JobsWorldwideTest do
   use ExUnit.Case
+  import ExUnit.CaptureIO
   doctest JobsWorldwide
+
+  alias NimbleCSV.RFC4180, as: CSV
 
   test "Gets :Afrique from Pointe-Noire’s (Congo, Africa) coordinates" do
     assert JobsWorldwide.ContinentsMap.get_continent(-4.769162, 11.866362) == :Afrique
@@ -35,16 +38,69 @@ defmodule JobsWorldwideTest do
     assert JobsWorldwide.ContinentsMap.get_continent(30, 165) == :"N/A"
   end
 
+  # We added a slight abstraction on those to test the filesystem IO
+  # Since those functions are critical, we should at least test them for the
+  # exercise.
+  defp parse_csv(file) do
+    file
+    |> File.stream!()
+    |> CSV.parse_stream()
+  end
+
+  test "Professions CSV parsing is correctly handled" do
+    professions_csv = parse_csv("test/fixtures/professions_test.csv")
+
+    list = %{
+      "28" => :Créa,
+      "14" => :Tech,
+      "1" => :Business
+    }
+
+    assert JobsWorldwide.CSVParser.map_professions(professions_csv) == list
+  end
+
   test "Jobs CSV parsing is correctly handled" do
-    csv_file = "test/fixtures/jobs_test.csv"
+    jobs_csv = parse_csv("test/fixtures/jobs_test.csv")
+    professions_csv = parse_csv("test/fixtures/professions_test.csv")
 
     list = [
-      %{location: :Europe, category: :Créa},
-      %{location: :"Amérique du Nord", category: :Tech},
-      %{location: :Europe, category: :Business},
-      %{location: :"N/A", category: :"N/A"}
+      Europe: :Créa,
+      "Amérique du Nord": :Tech,
+      Europe: :Business,
+      "N/A": :"N/A"
     ]
 
-    assert JobsWorldwide.CSVParser.map_jobs(csv_file) |> Enum.to_list() == list
+    assert JobsWorldwide.CSVParser.map_jobs(jobs_csv, professions_csv) == list
+  end
+
+  test "Offers list gets correctly processed into a table" do
+    list = [
+      Europe: :"Marketing / Comm'",
+      Europe: :"Marketing / Comm'",
+      Europe: :Business,
+      Europe: :"Marketing / Comm'",
+      Europe: :Conseil,
+      Europe: :Business,
+      "Amérique du Nord": :Retail,
+      Europe: :Business,
+      Europe: :Créa,
+      "N/A": :"Marketing / Comm'",
+      Asie: :Business
+    ]
+
+    table = """
+    +------------------+-------+----------+---------+------+-------------------+--------+
+    |                  | TOTAL | Business | Conseil | Créa | Marketing / Comm' | Retail |
+    +------------------+-------+----------+---------+------+-------------------+--------+
+    | TOTAL            | 11    | 4        | 1       | 1    | 4                 | 1      |
+    | Amérique du Nord | 1     | 0        | 0       | 0    | 0                 | 1      |
+    | Asie             | 1     | 1        | 0       | 0    | 0                 | 0      |
+    | Europe           | 8     | 3        | 1       | 1    | 3                 | 0      |
+    | N/A              | 1     | 0        | 0       | 0    | 1                 | 0      |
+    +------------------+-------+----------+---------+------+-------------------+--------+
+
+    """
+
+    assert capture_io(fn -> JobsWorldwide.Table.create_table(list) end) == table
   end
 end

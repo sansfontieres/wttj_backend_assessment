@@ -14,7 +14,7 @@ defmodule JobsWorldwide do
     jobs_csv = "data/technical-test-jobs.csv"
     professions_csv = "data/technical-test-professions.csv"
 
-    job_offers = JobsWorldwide.CSVParser.get_offers_list(jobs_csv, professions_csv)
+    job_offers = CSVParser.get_offers_list(jobs_csv, professions_csv)
 
     Table.create_table(job_offers)
   end

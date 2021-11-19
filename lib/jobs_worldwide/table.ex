@@ -2,23 +2,28 @@ defmodule JobsWorldwide.Table do
   @moduledoc "Creates a table out of job listing"
 
   # This function formats a list of rows to work with TableRex
+  # For each row (continents), we take their name and total number of offers,
+  # and put them in a list. To this list we add the corresponding number of
+  # offers from the header list (profession category).
+  # Finally, we put all those lists into an encapsulating list to deliver to
+  # TableRex.
   @spec rowify(map, map, map) :: list
   defp rowify(continents_totals, categories_totals, frequencies) do
     totals_row = Map.values(categories_totals)
     total_offers = Enum.sum(totals_row)
     totals_row = ["TOTAL", total_offers | totals_row]
-    row_list = Map.keys(categories_totals)
-    header_list = Map.keys(continents_totals)
+    header_list = Map.keys(categories_totals)
+    row_list = Map.keys(continents_totals)
 
     rows =
       [] ++
-        for x <- header_list do
+        for x <- row_list do
           row = [x]
 
           continent_total = continents_totals[x]
 
           total =
-            for z <- row_list do
+            for z <- header_list do
               total = frequencies[{x, z}]
 
               case total do
@@ -42,10 +47,20 @@ defmodule JobsWorldwide.Table do
   - The first row and columns are the totals of offers
 
   Example:
-      iex> Jobs.Worldwide.Table.create_table(jobs_offers)
-
+      iex> list = [
+      ...> Europe: :Tech,
+      ...> Asia: :Tech
+      ...> ]
+      iex> Jobs.Worldwide.Table.create_table(list)
+      +--------+-------+------+
+      |        | TOTAL | Tech |
+      +--------+-------+------+
+      | TOTAL  | 2     | 2    |
+      | Asia   | 1     | 1    |
+      | Europe | 1     | 1    |
+      +--------+-------+------+
   """
-  @spec create_table(list) :: :atom
+  @spec create_table(list) :: :ok
   def create_table(job_offers) do
     frequencies = Enum.frequencies(job_offers)
     continents_totals = job_offers |> Enum.frequencies_by(&elem(&1, 0))

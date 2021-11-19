@@ -171,7 +171,7 @@ defmodule JobsWorldwide.ContinentsMap do
       iex> JobsWorldwide.ContinentsMap.get_continent(100, 100)
       :"N/A"
   """
-  @spec get_continent(number, number) :: atom
+  @spec get_continent(number, number) :: :atom
   def get_continent(latitude, longitude) do
     location = %{type: "Point", coordinates: {latitude, longitude}}
 

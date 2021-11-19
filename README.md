@@ -76,17 +76,58 @@ permanent storage of the initial set of offers and the incoming stream of
 offers. But how can we output the table in real-time with a constant database
 growth?
 
+Doing the calculation for the full database each seconds would be a waste of
+time and resources. The number of requests from the client also matters.
+
+Rather than doing the full database recomputation, it would be easier to store
+the current state of the client in a cache, and only recalculate new offers. To
+keep the operation live, we could combine everything in such a chain:  
+Server&nbsp;&rarr;&nbsp;Websocket&nbsp;&rarr;&nbsp;Redis&nbsp;&rarr;&nbsp;SPA
+
+The websocket would do the actual work of getting the informations from the
+server, keeping the state from the client, and sending data back and forth.
+Redis would act as a buffer to store the state of the socket, keeping it alive
+if the client reloads the page. The single page application *raison d’être* is
+to keep the socket connexion alive if the user have to change the application
+context (going from the main application to the settings or billing page, etc.).
+
+It could be optimized by having a cluster of Redis instances to handle a lot of
+clients around the world.
+
+The nature of transported messages can be optimized, but more on that on the
+third assignement.
 
 
-
-<!-- Placeholder
 ## Third exercise
---> 
+
+To have this data consumable by an API, we have to choose what kind of clients
+we are going to deal with. There are two cases:
+
+- An API for third parties.
+- An API for the frontend.
+
+For the first case, a REST or a GraphQL API sending JSON to the client may be a
+good solution that people would be familiar with.
+
+For the front-end, we could transmit binaries for lighter messages and faster
+parsing. Since we are in the Erlang world, we are lucky to have such a format
+built-in: the Erlang External Term Format (ETF) fits very well our needs.
+Indeed, if we are working end-to-end with Elixir, we don’t have to encode and
+decode our messages in an alien format, saving processing time.
+
+Both scenarios are handled this way by companies like Discord: A Rest API
+transmitting JSON or ETF is open for developpers, and the official client uses a
+websocket and ETF for performance. We can still use ETF with a JavaScript
+front-end to only have the encoding/decoding part from one side only:
+https://github.com/discord/erlpack
+
+As for the endpoints, the first assignement data sources gave a good clue. We
+can have a endpoint to query for a list of offers for a specific profession
+category, or we could query for all offers.
+
 
 ## Encountered Issues
 
-- I barely wrote any Elixir before, so I had to get familiar with its data
-  structures. Thakfully, the Elixir documentation is easy to parse.
 - To keep this application fast, we had to rely on hardcoded coordinates for
   continents. I traded a true geography library for a geometry library.
 - CSVs have multiple conventions and a RFC (different separators, multiple
@@ -94,8 +135,11 @@ growth?
   reliable, I used an external library. We know how to parse files in `data/`
   but what if we use this app to import unknown CSV files from a client? The
   NimbleCSV library can handle that with little efforts.
-- Data structures. That was a lot to learn in a few days alongside Elixir
-  quirks.
+- Data structures. That was a lot to learn in a few days (I barely wrote any
+  Elixir before). For example, how data structures are (not) related to logic:
+  Elixir/functional programming quirks went in the way at first but it was
+  enventually trivial to overcome, considering how the assignement was a very
+  specific task. 
 
 ## Why Elixir?
 

@@ -28,6 +28,15 @@ defmodule JobsWorldwide.API do
     |> String.to_atom()
   end
 
+  def query_filter(query) do
+    query = for {k, v} <- query, into: %{}, do: {k, normalize_to_atom(v)}
+
+    case query do
+      _ ->
+        :malformed_query
+    end
+  end
+
   def get_offers do
     @offers
   end

@@ -18,6 +18,11 @@ defmodule JobsWorldwide.Router do
     send_etf(conn, 200, API.get_offers())
   end
 
+  get "/offers/:query" do
+    query = URI.decode_query(query)
+    send_etf(conn, 200, API.query_filter(query))
+  end
+
   match _ do
     send_resp(conn, 404, "Nothing to see.")
   end

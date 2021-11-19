@@ -3,8 +3,9 @@ defmodule JobsWorldwide.CSVParser do
 
   alias NimbleCSV.RFC4180, as: CSV
 
+  @doc "Returns a parsed CSV as a stream from a path"
   @spec parse_csv(String.t()) :: function
-  defp parse_csv(file) do
+  def parse_csv(file) do
     file
     |> File.stream!()
     |> CSV.parse_stream()
@@ -43,12 +44,28 @@ defmodule JobsWorldwide.CSVParser do
     |> elem(1)
   end
 
+  @spec upcase_atom(:atom) :: :atom
+  defp upcase_atom(atom) do
+    atom
+    |> Atom.to_string()
+    |> String.upcase()
+    |> String.to_atom()
+  end
+
+  @spec downcase_atom(:atom) :: :atom
+  defp downcase_atom(atom) do
+    atom
+    |> Atom.to_string()
+    |> String.downcase()
+    |> String.to_atom()
+  end
+
   @doc """
   Parses the jobs CSV and creates a list containing the continent and the job
   offer’s category in atoms.
 
   ## Example
-      iex> JobsWorldwide.CsvParser.map_jobs
+      iex> JobsWorldwide.CsvParser.map_jobs(jobs_csv, professions_csv)
       [
         Créa:  :Europe,
         Tech:  :"Amérique du Nord",
@@ -66,6 +83,7 @@ defmodule JobsWorldwide.CSVParser do
         category =
           try do
             get_category(id, professions_csv)
+            |> upcase_atom
           catch
             _, _ -> :"N/A"
           end
@@ -76,6 +94,7 @@ defmodule JobsWorldwide.CSVParser do
               String.to_float(latitude),
               String.to_float(longitude)
             )
+            |> upcase_atom
           catch
             _, _ -> :"N/A"
           end
@@ -85,7 +104,42 @@ defmodule JobsWorldwide.CSVParser do
     |> Enum.to_list()
   end
 
-  @doc "This is the entry point to this module."
+  @doc """
+  Behaves like `map_jobs` but returns a complete list with the contract type,
+  the job description.
+  """
+  @spec map_jobs_full(function, function) :: list
+  def map_jobs_full(jobs_csv, professions_csv) do
+    jobs_csv
+    |> Stream.map(fn
+      [id, contract, description, latitude, longitude] ->
+        category =
+          try do
+            get_category(id, professions_csv)
+            |> downcase_atom
+          catch
+            _, _ -> :"N/A"
+          end
+
+        continent =
+          try do
+            JobsWorldwide.ContinentsMap.get_continent(
+              String.to_float(latitude),
+              String.to_float(longitude)
+            )
+            |> downcase_atom
+          catch
+            _, _ -> :"N/A"
+          end
+
+        contract = contract |> String.downcase() |> String.to_atom()
+
+        {continent, contract, description, category}
+    end)
+    |> Enum.to_list()
+  end
+
+  @doc "This is the entry point to this module. Only used for the CLI"
   @spec get_offers_list(String.t(), String.t()) :: list
   def get_offers_list(jobs_csv, professions_csv) do
     jobs_csv = parse_csv(jobs_csv)

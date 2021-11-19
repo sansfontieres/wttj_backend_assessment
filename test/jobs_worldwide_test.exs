@@ -64,9 +64,9 @@ defmodule JobsWorldwideTest do
     professions_csv = parse_csv("test/fixtures/professions_test.csv")
 
     list = [
-      Europe: :Créa,
-      "Amérique du Nord": :Tech,
-      Europe: :Business,
+      EUROPE: :CRÉA,
+      "AMÉRIQUE DU NORD": :TECH,
+      EUROPE: :BUSINESS,
       "N/A": :"N/A"
     ]
 
@@ -75,27 +75,27 @@ defmodule JobsWorldwideTest do
 
   test "Offers list gets correctly processed into a table" do
     list = [
-      Europe: :"Marketing / Comm'",
-      Europe: :"Marketing / Comm'",
-      Europe: :Business,
-      Europe: :"Marketing / Comm'",
-      Europe: :Conseil,
-      Europe: :Business,
-      "Amérique du Nord": :Retail,
-      Europe: :Business,
-      Europe: :Créa,
-      "N/A": :"Marketing / Comm'",
-      Asie: :Business
+      EUROPE: :"MARKETING / COMM'",
+      EUROPE: :"MARKETING / COMM'",
+      EUROPE: :BUSINESS,
+      EUROPE: :"MARKETING / COMM'",
+      EUROPE: :CONSEIL,
+      EUROPE: :BUSINESS,
+      "AMÉRIQUE DU NORD": :RETAIL,
+      EUROPE: :BUSINESS,
+      EUROPE: :CRÉA,
+      "N/A": :"MARKETING / COMM'",
+      ASIE: :BUSINESS
     ]
 
     table = """
     +------------------+-------+----------+---------+------+-------------------+--------+
-    |                  | TOTAL | Business | Conseil | Créa | Marketing / Comm' | Retail |
+    |                  | TOTAL | BUSINESS | CONSEIL | CRÉA | MARKETING / COMM' | RETAIL |
     +------------------+-------+----------+---------+------+-------------------+--------+
     | TOTAL            | 11    | 4        | 1       | 1    | 4                 | 1      |
-    | Amérique du Nord | 1     | 0        | 0       | 0    | 0                 | 1      |
-    | Asie             | 1     | 1        | 0       | 0    | 0                 | 0      |
-    | Europe           | 8     | 3        | 1       | 1    | 3                 | 0      |
+    | AMÉRIQUE DU NORD | 1     | 0        | 0       | 0    | 0                 | 1      |
+    | ASIE             | 1     | 1        | 0       | 0    | 0                 | 0      |
+    | EUROPE           | 8     | 3        | 1       | 1    | 3                 | 0      |
     | N/A              | 1     | 0        | 0       | 0    | 1                 | 0      |
     +------------------+-------+----------+---------+------+-------------------+--------+
 

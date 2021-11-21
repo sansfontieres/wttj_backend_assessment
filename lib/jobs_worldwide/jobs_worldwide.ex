@@ -8,7 +8,7 @@ defmodule JobsWorldwide do
 
   @doc """
   The entry function of the CLI.  
-  It orchestrates every functions to output the job offers table.
+  It orchestrates every function to output the job offers table.
   """
   def main(_) do
     jobs_csv = "data/technical-test-jobs.csv"

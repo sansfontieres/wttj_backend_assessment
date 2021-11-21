@@ -3,7 +3,7 @@ defmodule JobsWorldwide.ContinentsMap do
     A coordinate to continent converter.
 
     Rationale: A pair of latitude and longitude coordinates are points on a
-    map. By combining points we get a geometric figure which its coordinates
+    map. By combining points, we get a geometric figure which its coordinates
     represents a continent. Therefore, if we can pinpoint an office location
     into one of those areas, we can confirm on which continent it is located.
     
@@ -161,7 +161,7 @@ defmodule JobsWorldwide.ContinentsMap do
   ]
 
   @doc """
-  Returns an atom with the continent name (in french) from the latitude and
+  Returns an atom with the continent name (in French) from the latitude and
   the longitude of a location. If the location points somewhere not covered
   by a continent area, it returns a dummy atom.
 

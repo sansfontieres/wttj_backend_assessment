@@ -4,7 +4,6 @@ defmodule JobsWorldwide.Application do
   use Application
 
   def start(_type, _args) do
-
     children = [
       {Plug.Cowboy, scheme: :http, plug: JobsWorldwide.Router, port: 3000}
     ]

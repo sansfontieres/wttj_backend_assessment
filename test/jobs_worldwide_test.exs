@@ -1,6 +1,10 @@
 defmodule JobsWorldwideTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import ExUnit.CaptureIO
+  use Plug.Test
+
+  @opts JobsWorldwide.Router.init([])
+
   doctest JobsWorldwide
 
   alias NimbleCSV.RFC4180, as: CSV
@@ -50,13 +54,13 @@ defmodule JobsWorldwideTest do
   test "Professions CSV parsing is correctly handled" do
     professions_csv = parse_csv("test/fixtures/professions_test.csv")
 
-    list = %{
+    map = %{
       "28" => :Créa,
       "14" => :Tech,
       "1" => :Business
     }
 
-    assert JobsWorldwide.CSVParser.map_professions(professions_csv) == list
+    assert JobsWorldwide.CSVParser.map_professions(professions_csv) == map
   end
 
   test "Jobs CSV parsing is correctly handled" do
@@ -102,5 +106,44 @@ defmodule JobsWorldwideTest do
     """
 
     assert capture_io(fn -> JobsWorldwide.Table.create_table(list) end) == table
+  end
+
+  @etf_mime "application/x-erlang-binary"
+
+  test "Router returns a greeting" do
+    conn = conn(:get, "/")
+    json_conn = JobsWorldwide.Router.call(conn, @opts)
+    etf_conn = conn |> put_req_header("accept", @etf_mime)
+    etf_conn = JobsWorldwide.Router.call(etf_conn, @opts)
+
+    assert json_conn.state == :sent
+    assert json_conn.status == 200
+    assert json_conn.resp_body == "[{\"Hello\": \"World\"}]"
+
+    assert etf_conn.state == :sent
+    assert etf_conn.status == 200
+    assert etf_conn.resp_body |> :erlang.binary_to_term() == ["Hello", "World"]
+  end
+
+  test "Router returns a \"malformed_query\" on invalid query" do
+    conn = conn(:get, "/offers/cantinent=europe")
+    json_conn = JobsWorldwide.Router.call(conn, @opts)
+    etf_conn = conn |> put_req_header("accept", @etf_mime)
+    etf_conn = JobsWorldwide.Router.call(etf_conn, @opts)
+
+    assert json_conn.state == :sent
+    assert json_conn.status == 200
+    assert json_conn.resp_body == "\"malformed_query\""
+
+    assert etf_conn.state == :sent
+    assert etf_conn.status == 200
+    assert etf_conn.resp_body |> :erlang.binary_to_term() == :malformed_query
+  end
+
+  test "Router returns 404 on unmatched routes" do
+    conn = conn(:get, "/no_clue")
+    conn = JobsWorldwide.Router.call(conn, @opts)
+
+    assert conn.status == 404
   end
 end

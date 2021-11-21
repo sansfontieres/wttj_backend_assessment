@@ -46,7 +46,7 @@ defmodule JobsWorldwide.Table do
   - X axis cells are continents of offices.
   - The first row and columns are the totals of offers
 
-  Example:
+  ## Example
       iex> list = [
       ...> Europe: :Tech,
       ...> Asia: :Tech

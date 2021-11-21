@@ -17,11 +17,22 @@ defmodule JobsWorldwide.Router do
   plug(:dispatch)
 
   get "/" do
-    send_etf(conn, 200, ["Hello", "World"])
+    if get_req_header(conn, "accept") == ["application/x-erlang-binary"] do
+      send_etf(conn, 200, ["Hello", "World"])
+    else
+      send_resp(conn, 200, "[{\"Hello\": \"World\"}]")
+    end
   end
 
   get "/offers" do
-    send_etf(conn, 200, API.get_offers())
+    body = API.get_offers()
+
+    if get_req_header(conn, "accept") == ["application/x-erlang-binary"] do
+      send_etf(conn, 200, body)
+    else
+      json = API.json_serialize(body)
+      send_resp(conn, 200, json)
+    end
   end
 
   get "/offers/:query" do

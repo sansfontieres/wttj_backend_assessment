@@ -7,6 +7,7 @@ defmodule JobsWorldwide.API do
 
   @offers CSVParser.map_jobs_full(@jobs_csv, @professions_csv)
 
+  @spec normalize_to_atom(String.t()) :: :atom
   defp normalize_to_atom(query) do
     query
     |> String.downcase()
@@ -15,9 +16,9 @@ defmodule JobsWorldwide.API do
 
   @doc """
   Returns a JSON in the case where we have to transmit in this format instead
-  of an ETF binary
+  of an ETF binary.
   """
-  @spec json_serialize(list) :: list
+  @spec json_serialize(list) :: String.t()
   def json_serialize(body) do
     body =
       try do
@@ -31,12 +32,19 @@ defmodule JobsWorldwide.API do
   end
 
   @doc """
-  Returns a list of offers matching the a query. The query itself is a map
-  created from `URL.decode_query/1`.
+  Returns a list of offers matching a query. The query itself is a map created
+  from `URL.decode_query/1`.
 
   Queries may only dig through continents, contract types and the profession
   category in a job offer. Any other kind of key return the atom
   `:malformed_query`, unless there’s at least one honored key.
+
+  ## Example
+      iex> JobsWorldwide.API.query_filter(%{"continent" => "Océanie"})
+      [
+        {:océanie, :full_time, "[TAG Heuer Australia] Boutique Manager - Melbourne",
+         :retail}
+      ]
   """
   @spec query_filter(map) :: list
   def query_filter(query) do
@@ -69,6 +77,8 @@ defmodule JobsWorldwide.API do
     end
   end
 
+  @doc "Returns a list of every offers"
+  @spec get_offers :: list
   def get_offers do
     @offers
   end

@@ -7,31 +7,63 @@ defmodule JobsWorldwide.API do
 
   @offers CSVParser.map_jobs_full(@jobs_csv, @professions_csv)
 
-  def find_by_continent(continent) do
-    query = String.to_atom(continent)
-    Enum.filter(@offers, fn x -> match?({^query, _, _, _}, x) end)
-  end
-
-  def find_by_contract(contract) do
-    query = String.to_atom(contract)
-    Enum.filter(@offers, fn x -> match?({_, ^query, _, _}, x) end)
-  end
-
-  def find_by_category(category) do
-    query = String.to_atom(category)
-    Enum.filter(@offers, fn x -> match?({_, _, _, ^query}, x) end)
-  end
-
   defp normalize_to_atom(query) do
     query
     |> String.downcase()
     |> String.to_atom()
   end
 
+  @doc """
+  Returns a JSON in the case where we have to transmit in this format instead
+  of an ETF binary
+  """
+  @spec json_serialize(list) :: list
+  def json_serialize(body) do
+    body =
+      try do
+        for {a, b, c, d} <- body,
+            do: Map.new([{"continent", a}, {"contract", b}, {"name", c}, {"category", d}])
+      catch
+        _, _ -> body
+      end
+
+    Jason.encode!(body)
+  end
+
+  @doc """
+  Returns a list of offers matching the a query. The query itself is a map
+  created from `URL.decode_query/1`.
+
+  Queries may only dig through continents, contract types and the profession
+  category in a job offer. Any other kind of key return the atom
+  `:malformed_query`, unless there’s at least one honored key.
+  """
+  @spec query_filter(map) :: list
   def query_filter(query) do
     query = for {k, v} <- query, into: %{}, do: {k, normalize_to_atom(v)}
 
     case query do
+      %{"continent" => continent, "contract" => contract, "category" => category} ->
+        Enum.filter(@offers, fn x -> match?({^continent, ^contract, _, ^category}, x) end)
+
+      %{"contract" => contract, "category" => category} ->
+        Enum.filter(@offers, fn x -> match?({_, ^contract, _, ^category}, x) end)
+
+      %{"continent" => continent, "category" => category} ->
+        Enum.filter(@offers, fn x -> match?({^continent, _, _, ^category}, x) end)
+
+      %{"continent" => continent, "contract" => contract} ->
+        Enum.filter(@offers, fn x -> match?({^continent, ^contract, _, _}, x) end)
+
+      %{"continent" => continent} ->
+        Enum.filter(@offers, fn x -> match?({^continent, _, _, _}, x) end)
+
+      %{"contract" => contract} ->
+        Enum.filter(@offers, fn x -> match?({_, ^contract, _, _}, x) end)
+
+      %{"category" => category} ->
+        Enum.filter(@offers, fn x -> match?({_, _, _, ^category}, x) end)
+
       _ ->
         :malformed_query
     end

@@ -7,7 +7,13 @@ defmodule JobsWorldwide.Router do
 
   plug(Plug.Logger)
   plug(:match)
-  plug(Plug.Parsers, parsers: [:etf], pass: ["application/x-erlang-binary"])
+
+  plug(Plug.Parsers,
+    parsers: [:etf, :json],
+    pass: ["application/x-erlang-binary", "text/*"],
+    json_decoder: Jason
+  )
+
   plug(:dispatch)
 
   get "/" do
@@ -20,7 +26,14 @@ defmodule JobsWorldwide.Router do
 
   get "/offers/:query" do
     query = URI.decode_query(query)
-    send_etf(conn, 200, API.query_filter(query))
+    body = API.query_filter(query)
+
+    if get_req_header(conn, "accept") == ["application/x-erlang-binary"] do
+      send_etf(conn, 200, body)
+    else
+      json = API.json_serialize(body)
+      send_resp(conn, 200, json)
+    end
   end
 
   match _ do

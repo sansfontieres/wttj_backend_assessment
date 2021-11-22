@@ -15,23 +15,6 @@ defmodule JobsWorldwide.API do
   end
 
   @doc """
-  Returns a JSON in the case where we have to transmit in this format instead
-  of an ETF binary.
-  """
-  @spec json_serialize(list) :: String.t()
-  def json_serialize(body) do
-    body =
-      try do
-        for {a, b, c, d} <- body,
-            do: Map.new([{"continent", a}, {"contract", b}, {"name", c}, {"category", d}])
-      catch
-        _, _ -> body
-      end
-
-    Jason.encode!(body)
-  end
-
-  @doc """
   Returns a list of offers matching a query. The query itself is a map created
   from `URL.decode_query/1`.
 
@@ -42,8 +25,12 @@ defmodule JobsWorldwide.API do
   ## Example
       iex> JobsWorldwide.API.query_filter(%{"continent" => "Océanie"})
       [
-        {:océanie, :full_time, "[TAG Heuer Australia] Boutique Manager - Melbourne",
-         :retail}
+        %{
+          category: :retail,
+          continent: :océanie,
+          contract: :full_time,
+          name: "[TAG Heuer Australia] Boutique Manager - Melbourne"
+        }
       ]
   """
   @spec query_filter(map) :: list
@@ -52,25 +39,27 @@ defmodule JobsWorldwide.API do
 
     case query do
       %{"continent" => continent, "contract" => contract, "category" => category} ->
-        Enum.filter(@offers, fn x -> match?({^continent, ^contract, _, ^category}, x) end)
+        Enum.filter(@offers, fn x ->
+          x.continent == continent and x.contract == contract and x.category == category
+        end)
 
       %{"contract" => contract, "category" => category} ->
-        Enum.filter(@offers, fn x -> match?({_, ^contract, _, ^category}, x) end)
+        Enum.filter(@offers, fn x -> x.contract == contract and x.category == category end)
 
       %{"continent" => continent, "category" => category} ->
-        Enum.filter(@offers, fn x -> match?({^continent, _, _, ^category}, x) end)
+        Enum.filter(@offers, fn x -> x.continent == continent and x.category == category end)
 
       %{"continent" => continent, "contract" => contract} ->
-        Enum.filter(@offers, fn x -> match?({^continent, ^contract, _, _}, x) end)
+        Enum.filter(@offers, fn x -> x.continent == continent and x.contract == contract end)
 
       %{"continent" => continent} ->
-        Enum.filter(@offers, fn x -> match?({^continent, _, _, _}, x) end)
+        Enum.filter(@offers, fn x -> x.continent == continent end)
 
       %{"contract" => contract} ->
-        Enum.filter(@offers, fn x -> match?({_, ^contract, _, _}, x) end)
+        Enum.filter(@offers, fn x -> x.contract == contract end)
 
       %{"category" => category} ->
-        Enum.filter(@offers, fn x -> match?({_, _, _, ^category}, x) end)
+        Enum.filter(@offers, fn x -> x.category == category end)
 
       _ ->
         :malformed_query

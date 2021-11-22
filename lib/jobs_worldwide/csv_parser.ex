@@ -110,33 +110,37 @@ defmodule JobsWorldwide.CSVParser do
   """
   @spec map_jobs_full(function, function) :: list
   def map_jobs_full(jobs_csv, professions_csv) do
-    jobs_csv
-    |> Stream.map(fn
-      [id, contract, description, latitude, longitude] ->
-        category =
-          try do
-            get_category(id, professions_csv)
-            |> downcase_atom
-          catch
-            _, _ -> :"N/A"
-          end
+    list =
+      jobs_csv
+      |> Stream.map(fn
+        [id, contract, name, latitude, longitude] ->
+          category =
+            try do
+              get_category(id, professions_csv)
+              |> downcase_atom
+            catch
+              _, _ -> :"N/A"
+            end
 
-        continent =
-          try do
-            JobsWorldwide.ContinentsMap.get_continent(
-              String.to_float(latitude),
-              String.to_float(longitude)
-            )
-            |> downcase_atom
-          catch
-            _, _ -> :"N/A"
-          end
+          continent =
+            try do
+              JobsWorldwide.ContinentsMap.get_continent(
+                String.to_float(latitude),
+                String.to_float(longitude)
+              )
+              |> downcase_atom
+            catch
+              _, _ -> :"N/A"
+            end
 
-        contract = contract |> String.downcase() |> String.to_atom()
+          contract = contract |> String.downcase() |> String.to_atom()
 
-        {continent, contract, description, category}
-    end)
-    |> Enum.to_list()
+          {continent, contract, name, category}
+      end)
+      |> Enum.to_list()
+
+    for {a, b, c, d} <- list,
+        do: Map.new([{:continent, a}, {:contract, b}, {:name, c}, {:category, d}])
   end
 
   @doc "This is the entry point to this module. Only used for the CLI"

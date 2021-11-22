@@ -199,8 +199,12 @@ From another terminal window, you can send your query like this:
 ; curl -s -H "accept: application/x-erlang-binary" "http://localhost:3000/offers/continent=Océanie" -o /tmp/offers
 ; cat /tmp/offers | elixir -e "IO.read(:stdio, :all) |> :erlang.binary_to_term() |> IO.inspect()"
 [
-  {:océanie, :full_time, "[TAG Heuer Australia] Boutique Manager - Melbourne",
-   :retail}
+  %{
+    category: :retail,
+    continent: :océanie,
+    contract: :full_time,
+    name: "[TAG Heuer Australia] Boutique Manager - Melbourne"
+  }
 ]
 ```
 
